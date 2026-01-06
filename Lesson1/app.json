@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Lesson1",
+    "name": "CoffeeShop",
     "slug": "Lesson1",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/coffee-cup-auth.png",
     "scheme": "lesson1",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

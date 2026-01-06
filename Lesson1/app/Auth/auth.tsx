@@ -1,8 +1,50 @@
-import { Image, StyleSheet, View, Text, TextInput, TouchableOpacity } from "react-native";
+import { Image, StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from 'expo-router';
+import { SignInInput, signInSchema } from "../types/auth_schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { login } from "@/services/api";
+import { useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function Auth() {
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignInInput>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: SignInInput) => {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const result = await login(data.email, data.password);
+      console.log('login result', result);
+      if (result) {
+        AsyncStorage.setItem('user', JSON.stringify(result));
+        router.replace('/(tabs)/home');
+      } else {
+        setErrorMsg('Invalid credentials');
+      }
+    } catch (err: any) {
+      console.error('login error', err);
+      setErrorMsg(err?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ width: '100%', alignItems: 'center' }}>
@@ -14,11 +56,46 @@ export default function Auth() {
           <Text style={styles.text}>{"Shop"}</Text>
         </View>
         <View style={styles.formContainer}>
-          <TextInput placeholder="Email" style={styles.input} />
-          <TextInput placeholder="Password" style={styles.input} secureTextEntry />
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Signin</Text>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                placeholder="Email"
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
+          />
+          {errors.email && <Text style={{ color: 'red' }}>{errors.email.message}</Text>}
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                placeholder="Password"
+                style={styles.input}
+                secureTextEntry
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
+          />
+          {errors.password && <Text style={{ color: 'red' }}>{errors.password.message}</Text>}
+          <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)} disabled={loading}>
+            {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Sign in</Text>}
           </TouchableOpacity>
+
+          {errorMsg ? <Text style={{ color: '#ff7b7b', textAlign: 'center', marginTop: 8 }}>{errorMsg}</Text> : null}
+
+          <View style={{ flexDirection: 'row', justifyContent: 'center', alignSelf: 'center', marginTop: 12 }}>
+            <TouchableOpacity onPress={() => router.push('/auth/register')}>
+              <Text style={{ color: 'white' }}>Don't have an account? Register</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -34,6 +111,7 @@ const styles = StyleSheet.create({
     width: "100%",
     borderColor: "black",
     padding: 10,
+    color: "white",
     marginBottom: 10,
   },
   buttonText: {

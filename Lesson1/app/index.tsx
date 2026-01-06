@@ -1,12 +1,9 @@
 import { Image } from "expo-image";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import {
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,7 +28,7 @@ export default function Index() {
           {"The best gain, the finest roast, the\npowerful flavor."}
         </Text>
         <Pressable
-          onPress={() => router.push("/Auth/auth")}
+          onPress={() => router.push("/auth/auth")}
           style={styles.button}
         >
           <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
